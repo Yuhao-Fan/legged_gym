@@ -23,19 +23,74 @@ Paper: https://arxiv.org/abs/2109.11978
 
 ### Installation ###
 1. Create a new python virtual env with python 3.6, 3.7 or 3.8 (3.8 recommended)
+    - `sudo python3.8 -m venv 3.8-env`
+    - `source 3.8-env/bin/activate`
 2. Install pytorch 1.10 with cuda-11.3:
     - `pip3 install torch==1.10.0+cu113 torchvision==0.11.1+cu113 torchaudio==0.10.0+cu113 -f https://download.pytorch.org/whl/cu113/torch_stable.html`
 3. Install Isaac Gym
    - Download and install Isaac Gym Preview 3 (Preview 2 will not work!) from https://developer.nvidia.com/isaac-gym
-   - `cd isaacgym/python && pip install -e .`
+   - `cd isaacgym/python`
+   - `sudo pip install -e .`
+   1. Fix Broken Packages
+First, let's try fixing the broken package dependencies:
+
+bash
+Copy code
+sudo apt --fix-broken install
+This command will attempt to fix any broken or partially installed packages.
+
+2. Update Package Lists
+Update the package lists to ensure you have the latest versions of the repositories:
+
+bash
+Copy code
+sudo apt update
+3. Try Installing the Required Dependencies
+Manually install the missing dependency, libnvidia-compute-535:
+
+bash
+Copy code
+sudo apt install libnvidia-compute-535
+4. Install the NVIDIA Utils Again
+After resolving dependencies, try installing the NVIDIA driver utilities again:
+
+bash
+Copy code
+sudo apt install nvidia-utils-535
+
+1. Install NVIDIA Drivers
+Make sure you have the necessary NVIDIA drivers installed. You can install them by following these steps on Ubuntu:
+
+Add NVIDIA Repository (if not already done):
+
+bash
+Copy code
+sudo add-apt-repository ppa:graphics-drivers/ppa
+sudo apt update
+Install the drivers: Check for available drivers:
+
+bash
+Copy code
+ubuntu-drivers devices
+Install the recommended driver:
+
+bash
+Copy code
+sudo apt install nvidia-driver-XXX  # Replace XXX with the version number
+Reboot your system:
+
+bash
+Copy code
+sudo reboot
+
    - Try running an example `cd examples && python 1080_balls_of_solitude.py`
    - For troubleshooting check docs `isaacgym/docs/index.html`)
 4. Install rsl_rl (PPO implementation)
-   - Clone https://github.com/leggedrobotics/rsl_rl
+   - git clone https://github.com/leggedrobotics/rsl_rl
    -  `cd rsl_rl && git checkout v1.0.2 && pip install -e .` 
 5. Install legged_gym
     - Clone this repository
-   - `cd legged_gym && pip install -e .`
+   - `cd legged_gym && sudo pip install -e .`
 
 ### CODE STRUCTURE ###
 1. Each environment is defined by an env file (`legged_robot.py`) and a config file (`legged_robot_config.py`). The config file contains two classes: one containing  all the environment parameters (`LeggedRobotCfg`) and one for the training parameters (`LeggedRobotCfgPPo`).  
@@ -43,9 +98,15 @@ Paper: https://arxiv.org/abs/2109.11978
 3. Each non-zero reward scale specified in `cfg` will add a function with a corresponding name to the list of elements which will be summed to get the total reward.  
 4. Tasks must be registered using `task_registry.register(name, EnvClass, EnvConfig, TrainConfig)`. This is done in `envs/__init__.py`, but can also be done from outside of this repository.  
 
+sudo python3 -c "import numpy; print(numpy.__version__)"
+sudo pip uninstall numpy
+sudo pip install numpy==1.19.5
+sudo pip install matplotlib==3.3.4
+
+
 ### Usage ###
 1. Train:  
-  ```python legged_gym/scripts/train.py --task=anymal_c_flat```
+  ```sudo python3 legged_gym/scripts/train.py --task=anymal_c_flat```
     -  To run on CPU add following arguments: `--sim_device=cpu`, `--rl_device=cpu` (sim on CPU and rl on GPU is possible).
     -  To run headless (no rendering) add `--headless`.
     - **Important**: To improve performance, once the training starts press `v` to stop the rendering. You can then enable it later to check the progress.
@@ -61,7 +122,7 @@ Paper: https://arxiv.org/abs/2109.11978
      - --seed SEED:  Random seed.
      - --max_iterations MAX_ITERATIONS:  Maximum number of training iterations.
 2. Play a trained policy:  
-```python legged_gym/scripts/play.py --task=anymal_c_flat```
+```sudo python3 legged_gym/scripts/play.py --task=anymal_c_flat```
     - By default, the loaded policy is the last model of the last run of the experiment folder.
     - Other runs/model iteration can be selected by setting `load_run` and `checkpoint` in the train config.
 
